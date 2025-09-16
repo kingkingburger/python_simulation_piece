@@ -30,9 +30,9 @@ def test_exponential_generate_positive_values():
         assert value >= 0.0
 
 
-def test_exponential_generate_statistical_properties():
+@pytest.mark.parametrize("mean", [1.0, 2.0, 5.0, 10.0])
+def test_exponential_generate_statistical_properties(mean: float):
     """Exponential 분포의 통계적 특성 테스트"""
-    mean = 5.0
     exp = Exponential(mean)
 
     samples = [exp.generate() for _ in range(10000)]

@@ -49,9 +49,10 @@ def test_triangular_generate_range():
         assert 2.0 <= value <= 12.0
 
 
-def test_triangular_generate_mode_preference():
+@pytest.mark.parametrize("min_value, mode, max_value", [(0.0, 50.0, 100.0)])
+def test_triangular_generate_mode_preference(min_value: float, mode: float, max_value: float):
     """Triangular 분포가 mode 값 주변에 더 많은 샘플을 생성하는지 테스트"""
-    tri = Triangular(0.0, 50.0, 100.0)
+    tri = Triangular(min_value, mode, max_value)
     samples = [tri.generate() for _ in range(10000)]
 
     # mode 근처(40-60)에 더 많은 샘플이 있어야 함
