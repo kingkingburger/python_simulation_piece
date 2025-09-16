@@ -1,5 +1,4 @@
 import pytest
-import statistics
 from src.distributions.triangular import Triangular
 
 

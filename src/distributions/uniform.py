@@ -1,6 +1,6 @@
 import random
-from .base import Distribution
 
+from src.distributions.base import Distribution
 
 class Uniform(Distribution):
     """균등 분포(Uniform Distribution)."""

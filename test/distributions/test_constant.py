@@ -1,4 +1,3 @@
-import pytest
 from src.distributions.constant import Constant
 
 

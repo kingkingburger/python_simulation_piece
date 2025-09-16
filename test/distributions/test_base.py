@@ -1,4 +1,5 @@
 import pytest
+
 from src.distributions.base import Distribution
 
 

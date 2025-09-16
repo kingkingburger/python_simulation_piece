@@ -1,5 +1,6 @@
 from typing import Union
-from .base import Distribution
+
+from src.distributions.base import Distribution
 
 
 class Constant(Distribution):

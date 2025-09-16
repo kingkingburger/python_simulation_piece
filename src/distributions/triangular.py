@@ -1,5 +1,6 @@
 import random
-from .base import Distribution
+
+from src.distributions.base import Distribution
 
 
 class Triangular(Distribution):
