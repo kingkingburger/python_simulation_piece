@@ -1,4 +1,4 @@
-import random
+import numpy as np
 
 from src.distributions.base import Distribution
 
@@ -17,11 +17,10 @@ class Exponential(Distribution):
         if mean <= 0:
             raise ValueError("Mean for Exponential distribution must be positive.")
         self.mean = mean
-        # random.expovariate는 1/mean인 lambda를 인자로 받습니다.
-        self.lambd = 1.0 / self.mean
 
     def generate(self) -> float:
-        return random.expovariate(self.lambd)
+        # scale(평균)을 직접 인자로 받습니다.
+        return np.random.exponential(scale=self.mean)
 
     def __repr__(self) -> str:
         return f"Exponential(mean={self.mean})"

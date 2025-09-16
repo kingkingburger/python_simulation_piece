@@ -1,4 +1,4 @@
-import random
+import numpy as np
 
 from src.distributions.base import Distribution
 
@@ -21,7 +21,7 @@ class Normal(Distribution):
         self.stddev = stddev
 
     def generate(self) -> float:
-        return random.normalvariate(self.mean, self.stddev)
+        return np.random.normal(loc=self.mean, scale=self.stddev)
 
     def __repr__(self) -> str:
         return f"Normal(mean={self.mean}, stddev={self.stddev})"

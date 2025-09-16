@@ -1,4 +1,4 @@
-import random
+import numpy as np
 
 from src.distributions.base import Distribution
 
@@ -23,7 +23,7 @@ class Triangular(Distribution):
         self.max_val = max_val
 
     def generate(self) -> float:
-        return random.triangular(self.min_val, self.max_val, self.mode)
+        return np.random.triangular(left=self.min_val, mode=self.mode, right=self.max_val)
 
     def __repr__(self) -> str:
         return f"Triangular(min_val={self.min_val}, mode={self.mode}, max_val={self.max_val})"

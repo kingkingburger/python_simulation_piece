@@ -1,4 +1,4 @@
-import random
+import numpy as np
 
 from src.distributions.base import Distribution
 
@@ -20,7 +20,7 @@ class Uniform(Distribution):
         self.max_val = max_val
 
     def generate(self) -> float:
-        return random.uniform(self.min_val, self.max_val)
+        return np.random.uniform(low=self.min_val, high=self.max_val)
 
     def __repr__(self) -> str:
         return f"Uniform(min_val={self.min_val}, max_val={self.max_val})"
