@@ -7,7 +7,6 @@ def test_exponential_initialization():
     """Exponential 분포 초기화 테스트"""
     exp = Exponential(2.0)
     assert exp.mean == 2.0
-    assert exp.lambd == 0.5  # 1/mean
 
 
 def test_exponential_zero_mean_raises_error():

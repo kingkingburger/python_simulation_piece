@@ -8,3 +8,13 @@ dependencies = [
     "numpy>=2.3.3",
     "pytest>=8.4.2",
 ]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-dir]
+"" = "src"
+
+[tool.pytest.ini_options]
+testpaths = ["test"]
+pythonpath = ["src"]
