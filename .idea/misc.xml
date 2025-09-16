@@ -4,8 +4,8 @@
     <option name="sdkName" value="uv (octopus-simulator-salabim) (2)" />
   </component>
   <component name="KubernetesApiPersistence">{}</component>
-  <component name="KubernetesApiProvider">{
-  &quot;isMigrated&quot;: true
-}</component>
-  <component name="ProjectRootManager" version="2" project-jdk-name="uv (octopus-simulator-salabim) (2)" project-jdk-type="Python SDK" />
+  <component name="KubernetesApiProvider"><![CDATA[{
+  "isMigrated": true
+}]]></component>
+  <component name="ProjectRootManager" version="2" project-jdk-name="uv (python_playground) (2)" project-jdk-type="Python SDK" />
 </project>
