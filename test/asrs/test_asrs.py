@@ -107,14 +107,14 @@ class TestASRS:
         pos1 = Position(0, 0, 0)
         pos2 = Position(1, 1, 1)
 
-        assert self.asrs.get_total_items() == 0
+        assert self.asrs.get_total_item_count() == 0
 
         self.asrs.put_item(self.item1, pos1)
-        assert self.asrs.get_total_items() == 1
+        assert self.asrs.get_total_item_count() == 1
 
         self.asrs.put_item(self.item2, pos1)  # 같은 셀에 추가
         self.asrs.put_item(self.item3, pos2)  # 다른 셀에 추가
-        assert self.asrs.get_total_items() == 3
+        assert self.asrs.get_total_item_count() == 3
 
     def test_get_empty_cells(self):
         """빈 셀 조회 테스트"""

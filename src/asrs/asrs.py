@@ -1,9 +1,10 @@
-from random import random
+import time
 from typing import List, Optional, Dict
 
 from .cell import Cell
 from .config.storage_cost_policy import StorageCostPolicy, PerTimeUnitStrategy, \
     PerItemUnitStrategy
+from .config.work_time_config import WorkTimeConfig
 from .item import Item
 from .output_policy import OutputPolicy, FIFOStrategy, LIFOStrategy, \
     PriorityStrategy
@@ -21,8 +22,8 @@ class ASRS:
         max_z: int,
         inbound_time: float = 1.0,
         outbound_time: float = 1.0,
-        storage_cost_policy: StorageCostPolicy = StorageCostPolicy.PER_ITEM_UNIT,
-        cost_item: float = 0.01,
+        storage_cost_policy: StorageCostPolicy = StorageCostPolicy.PER_TIME_UNIT,
+        cost: float = 0.01,
         cost_time: float = 0.1,
         max_items_per_cell: int = 100
     ):
@@ -31,13 +32,14 @@ class ASRS:
         self.max_z = max_z
         self.inbound_time = inbound_time
         self.outbound_time = outbound_time
+        self.work_config = WorkTimeConfig()
         self.storage_cost_policy = storage_cost_policy
         self.storage_cost_strategies = {
             StorageCostPolicy.PER_TIME_UNIT: PerTimeUnitStrategy(),
             StorageCostPolicy.PER_ITEM_UNIT: PerItemUnitStrategy()
         }
-        self.cost_item = cost_item
-        self.cost_time = cost_time
+        self.cost = cost # 비용
+        self.cost_time = cost_time # 보관 유지 비용 정책(초)
         self.max_items_per_cell = max_items_per_cell
         self.cells: Dict[Position, Cell] = {}
         self.output_policy = OutputPolicy.FIFO
@@ -65,20 +67,9 @@ class ASRS:
                 0 <= position.y < self.max_y and
                 0 <= position.z < self.max_z)
 
-    def calculate_storage_cost(self, items_count: int, time: float, cost: float) -> float:
-        """
-        보관유지비용 계산
-
-        Args:
-            items_count: 아이템 개수
-            time: 시간
-            cost: 비용
-        Returns:
-            계산된 보관유지비용
-        """
-        storage_cost_policy = self.storage_cost_strategies[
-            self.storage_cost_policy]
-        return storage_cost_policy.calculate(time, cost, items_count)
+    def calculate_storage_cost(self, items_count: int) -> float:
+        storage_cost_policy = self.storage_cost_strategies[self.storage_cost_policy]
+        return storage_cost_policy.calculate(self, items_count)
 
     def is_cell_full(self, current_items_count: int) -> bool:
         """
@@ -120,6 +111,9 @@ class ASRS:
         if self.is_cell_full(current_items_count):
             return False
 
+        # 입고 시간 딜레이 적용
+        self.work_config.delay_time(self.inbound_time)
+
         cell.add_item(item)
         return True
 
@@ -130,7 +124,14 @@ class ASRS:
 
         cell = self.cells[position]
         strategy = self.strategies[self.output_policy]
-        return strategy.get_item(cell)
+
+        # 출고할 아이템이 있는지 먼저 확인
+        item = strategy.get_item(cell)
+        if item is not None:
+            # 출고 시간 딜레이 적용
+            self.work_config.delay_time(self.outbound_time)
+
+        return item
 
     def get_items_at_position(self, position: Position) -> List[Item]:
         """특정 위치의 모든 아이템 조회"""
@@ -158,12 +159,18 @@ class ASRS:
         """스태커크레인을 통한 출고"""
         return self.stacker_crane.get_item(position)
 
-    def get_total_items(self) -> int:
+    def get_total_item_count(self) -> int:
         """전체 아이템 수 반환"""
         total = 0
         for cell in self.cells.values():
             total += len(cell.get_items())
         return total
+
+    def get_total_items(self) -> List[Item]:
+        all_items = []
+        for cell in self.cells.values():
+            all_items.extend(cell.get_items())
+        return all_items
 
     def get_empty_cells(self) -> List[Position]:
         """빈 셀들의 위치 반환"""
@@ -186,14 +193,14 @@ class ASRS:
         """전체 보관유지비용 계산"""
         total_cost = 0.0
         # 설정된 x초 마다 설정값
-        time = self.cost_time
         for cell in self.cells.values():
             items_count = len(cell.get_items())
             if items_count > 0:
-                total_cost += self.calculate_storage_cost(items_count, time, cost)
+                total_cost += self.calculate_storage_cost(items_count, time)
         return total_cost
 
-    def get_cell_capacity_info(self, position: Position) -> Optional[Dict[str, int]]:
+    def get_cell_capacity_info(self, position: Position) -> Optional[
+        Dict[str, int]]:
         """특정 셀의 용량 정보 반환"""
         if not self._is_valid_position(position):
             return None

@@ -10,12 +10,11 @@ class TestStorageCostPolicy:
     def test_per_item_unit_strategy(self):
         # given
         strategy = PerItemUnitStrategy()
-        time = 10.0  # 10초
-        cost = 0.01  # 아이템당 초당 0.01 비용
         item_count = 5  # 5개 아이템
+        asrs = ASRS(max_x=2, max_y=2, max_z=2, storage_cost_policy=StorageCostPolicy.PER_ITEM_UNIT)
 
         # when
-        total_cost = strategy.calculate(time, cost, item_count)
+        total_cost = strategy.calculate(asrs, item_count)
 
         # then
         # 10초 * 0.01 * 5개 = 0.5
@@ -24,12 +23,12 @@ class TestStorageCostPolicy:
     def test_per_time_unit_strategy(self):
         # given
         strategy = PerTimeUnitStrategy()
-        time = 10.0  # 10초
-        cost = 0.1   # 초당 0.1 비용
         item_count = 5  # 아이템 개수는 무시됨
+        asrs = ASRS(max_x=2, max_y=2, max_z=2)
+
 
         # when
-        total_cost = strategy.calculate(time, cost, item_count)
+        total_cost = strategy.calculate(asrs, item_count)
 
         # then
         # 10초 * 0.1 = 1.0
@@ -64,11 +63,10 @@ class TestStorageCostPolicy:
         asrs = ASRS(max_x=2, max_y=2, max_z=2, 
                    storage_cost_policy=StorageCostPolicy.PER_ITEM_UNIT)
         item_count = 3
-        time = 5.0
         cost = 0.01
 
         # when
-        total_cost = asrs.calculate_storage_cost(item_count, time, cost)
+        total_cost = asrs.calculate_storage_cost(item_count)
 
         # then
         # 3개 * 5초 * 0.01 = 0.15
