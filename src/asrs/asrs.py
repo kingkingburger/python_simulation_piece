@@ -4,15 +4,17 @@ from .position import Position
 from .cell import Cell
 from .output_policy import OutputPolicy, FIFOStrategy, LIFOStrategy, PriorityStrategy
 from .stacker_crane import StackerCrane
+from .config import ASRSConfig
 
 
 class ASRS:
     """자동창고 시스템 메인 클래스"""
 
-    def __init__(self, max_x: int, max_y: int, max_z: int):
+    def __init__(self, max_x: int, max_y: int, max_z: int, config: Optional[ASRSConfig] = None):
         self.max_x = max_x
         self.max_y = max_y
         self.max_z = max_z
+        self.config = config or ASRSConfig()
         self.cells: Dict[Position, Cell] = {}
         self.output_policy = OutputPolicy.FIFO
         self.strategies = {
@@ -49,6 +51,12 @@ class ASRS:
             return False
 
         cell = self.cells[position]
+        current_items_count = len(cell.get_items())
+
+        # 셀 용량 확인
+        if self.config.is_cell_full(current_items_count):
+            return False
+
         cell.add_item(item)
         return True
 
@@ -101,3 +109,35 @@ class ASRS:
             if cell.is_empty():
                 empty_positions.append(position)
         return empty_positions
+
+    def get_available_cells(self) -> List[Position]:
+        """아직 용량이 남은 셀들의 위치 반환"""
+        available_positions = []
+        for position, cell in self.cells.items():
+            current_items_count = len(cell.get_items())
+            if not self.config.is_cell_full(current_items_count):
+                available_positions.append(position)
+        return available_positions
+
+    def calculate_total_storage_cost(self, time_units: float) -> float:
+        """전체 보관유지비용 계산"""
+        total_cost = 0.0
+        for cell in self.cells.values():
+            items_count = len(cell.get_items())
+            if items_count > 0:
+                total_cost += self.config.calculate_storage_cost(items_count, time_units)
+        return total_cost
+
+    def get_cell_capacity_info(self, position: Position) -> Optional[Dict[str, int]]:
+        """특정 셀의 용량 정보 반환"""
+        if not self._is_valid_position(position):
+            return None
+
+        cell = self.cells[position]
+        current_items_count = len(cell.get_items())
+
+        return {
+            "current_items": current_items_count,
+            "max_capacity": self.config.max_items_per_cell,
+            "available_capacity": self.config.get_available_capacity(current_items_count)
+        }
