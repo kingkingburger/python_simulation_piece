@@ -12,7 +12,7 @@ class TestASRSConfig:
         assert config.inbound_time == 1.0
         assert config.outbound_time == 1.0
         assert config.storage_cost_policy == StorageCostPolicy.PER_TIME_UNIT
-        assert config.storage_cost_per_unit == 0.1
+        assert config.cost_item == 0.1
         assert config.max_items_per_cell == 100
 
     def test_custom_config(self):
@@ -28,7 +28,7 @@ class TestASRSConfig:
         assert config.inbound_time == 2.5
         assert config.outbound_time == 1.5
         assert config.storage_cost_policy == StorageCostPolicy.PER_ITEM_UNIT
-        assert config.storage_cost_per_unit == 0.05
+        assert config.cost_item == 0.05
         assert config.max_items_per_cell == 50
 
     def test_calculate_storage_cost_per_time_unit(self):
@@ -38,7 +38,7 @@ class TestASRSConfig:
             storage_cost_per_unit=0.2
         )
 
-        cost = config.calculate_storage_cost(items_count=10, time_units=5.0)
+        cost = config.calculate(,,
         assert cost == 1.0  # 0.2 * 5.0
 
     def test_calculate_storage_cost_per_item_unit(self):
@@ -48,7 +48,7 @@ class TestASRSConfig:
             storage_cost_per_unit=0.3
         )
 
-        cost = config.calculate_storage_cost(items_count=8, time_units=5.0)
+        cost = config.calculate(,,
         assert cost == 2.4  # 0.3 * 8
 
     def test_is_cell_full(self):

@@ -1,20 +1,44 @@
+from random import random
 from typing import List, Optional, Dict
-from .item import Item
-from .position import Position
+
 from .cell import Cell
-from .output_policy import OutputPolicy, FIFOStrategy, LIFOStrategy, PriorityStrategy
+from .config.storage_cost_policy import StorageCostPolicy, PerTimeUnitStrategy, \
+    PerItemUnitStrategy
+from .item import Item
+from .output_policy import OutputPolicy, FIFOStrategy, LIFOStrategy, \
+    PriorityStrategy
+from .position import Position
 from .stacker_crane import StackerCrane
-from .config import ASRSConfig
 
 
 class ASRS:
     """자동창고 시스템 메인 클래스"""
 
-    def __init__(self, max_x: int, max_y: int, max_z: int, config: Optional[ASRSConfig] = None):
+    def __init__(
+        self,
+        max_x: int,
+        max_y: int,
+        max_z: int,
+        inbound_time: float = 1.0,
+        outbound_time: float = 1.0,
+        storage_cost_policy: StorageCostPolicy = StorageCostPolicy.PER_ITEM_UNIT,
+        cost_item: float = 0.01,
+        cost_time: float = 0.1,
+        max_items_per_cell: int = 100
+    ):
         self.max_x = max_x
         self.max_y = max_y
         self.max_z = max_z
-        self.config = config or ASRSConfig()
+        self.inbound_time = inbound_time
+        self.outbound_time = outbound_time
+        self.storage_cost_policy = storage_cost_policy
+        self.storage_cost_strategies = {
+            StorageCostPolicy.PER_TIME_UNIT: PerTimeUnitStrategy(),
+            StorageCostPolicy.PER_ITEM_UNIT: PerItemUnitStrategy()
+        }
+        self.cost_item = cost_item
+        self.cost_time = cost_time
+        self.max_items_per_cell = max_items_per_cell
         self.cells: Dict[Position, Cell] = {}
         self.output_policy = OutputPolicy.FIFO
         self.strategies = {
@@ -37,9 +61,48 @@ class ASRS:
 
     def _is_valid_position(self, position: Position) -> bool:
         """위치가 유효한지 확인"""
-        return (0 <= position.x < self.max_x and 
-                0 <= position.y < self.max_y and 
+        return (0 <= position.x < self.max_x and
+                0 <= position.y < self.max_y and
                 0 <= position.z < self.max_z)
+
+    def calculate_storage_cost(self, items_count: int, time: float, cost: float) -> float:
+        """
+        보관유지비용 계산
+
+        Args:
+            items_count: 아이템 개수
+            time: 시간
+            cost: 비용
+        Returns:
+            계산된 보관유지비용
+        """
+        storage_cost_policy = self.storage_cost_strategies[
+            self.storage_cost_policy]
+        return storage_cost_policy.calculate(time, cost, items_count)
+
+    def is_cell_full(self, current_items_count: int) -> bool:
+        """
+        셀이 가득 찼는지 확인
+
+        Args:
+            current_items_count: 현재 셀의 아이템 개수
+
+        Returns:
+            셀이 가득 찼으면 True, 아니면 False
+        """
+        return current_items_count >= self.max_items_per_cell
+
+    def get_available_capacity(self, current_items_count: int) -> int:
+        """
+        셀의 남은 용량 반환
+
+        Args:
+            current_items_count: 현재 셀의 아이템 개수
+
+        Returns:
+            남은 용량
+        """
+        return max(0, self.max_items_per_cell - current_items_count)
 
     def set_output_policy(self, policy: OutputPolicy):
         """출고 정책 설정"""
@@ -54,7 +117,7 @@ class ASRS:
         current_items_count = len(cell.get_items())
 
         # 셀 용량 확인
-        if self.config.is_cell_full(current_items_count):
+        if self.is_cell_full(current_items_count):
             return False
 
         cell.add_item(item)
@@ -115,17 +178,19 @@ class ASRS:
         available_positions = []
         for position, cell in self.cells.items():
             current_items_count = len(cell.get_items())
-            if not self.config.is_cell_full(current_items_count):
+            if not self.is_cell_full(current_items_count):
                 available_positions.append(position)
         return available_positions
 
-    def calculate_total_storage_cost(self, time_units: float) -> float:
+    def calculate_total_storage_cost(self, cost: float) -> float:
         """전체 보관유지비용 계산"""
         total_cost = 0.0
+        # 설정된 x초 마다 설정값
+        time = self.cost_time
         for cell in self.cells.values():
             items_count = len(cell.get_items())
             if items_count > 0:
-                total_cost += self.config.calculate_storage_cost(items_count, time_units)
+                total_cost += self.calculate_storage_cost(items_count, time, cost)
         return total_cost
 
     def get_cell_capacity_info(self, position: Position) -> Optional[Dict[str, int]]:
@@ -138,6 +203,7 @@ class ASRS:
 
         return {
             "current_items": current_items_count,
-            "max_capacity": self.config.max_items_per_cell,
-            "available_capacity": self.config.get_available_capacity(current_items_count)
+            "max_capacity": self.max_items_per_cell,
+            "available_capacity": self.get_available_capacity(
+                current_items_count)
         }
