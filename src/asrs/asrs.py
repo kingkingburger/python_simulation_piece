@@ -1,9 +1,7 @@
-import time
 from typing import List, Optional, Dict
 
 from .cell import Cell
-from .config.storage_cost_policy import StorageCostPolicy, PerTimeUnitStrategy, \
-    PerItemUnitStrategy
+from .config.storage_cost_policy import StorageCostPolicy, PerTimeUnitStrategy
 from .config.work_time_config import WorkTimeConfig
 from .item import Item
 from .output_policy import OutputPolicy, FIFOStrategy, LIFOStrategy, \
@@ -36,7 +34,6 @@ class ASRS:
         self.storage_cost_policy = storage_cost_policy
         self.storage_cost_strategies = {
             StorageCostPolicy.PER_TIME_UNIT: PerTimeUnitStrategy(),
-            StorageCostPolicy.PER_ITEM_UNIT: PerItemUnitStrategy()
         }
         self.cost = cost # 비용
         self.cost_time = cost_time # 보관 유지 비용 정책(초)
@@ -196,7 +193,7 @@ class ASRS:
         for cell in self.cells.values():
             items_count = len(cell.get_items())
             if items_count > 0:
-                total_cost += self.calculate_storage_cost(items_count, time)
+                total_cost += self.calculate_storage_cost(items_count)
         return total_cost
 
     def get_cell_capacity_info(self, position: Position) -> Optional[
