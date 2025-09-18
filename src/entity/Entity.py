@@ -1,4 +1,5 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from typing import Dict
 
 
 @dataclass
@@ -9,5 +10,5 @@ class Entity:
     height: float
     weight: float
     order: int
-    tag: str
+    tag: Dict[str, str] = field(default_factory=dict)
 
