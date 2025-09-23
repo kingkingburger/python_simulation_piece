@@ -14,7 +14,38 @@ def test_distribution_subclass_must_implement_generate():
 
     class IncompleteDistribution(Distribution):
         pass
+import pytest
+from src.distributions.base import Distribution
 
+
+class TestDistribution:
+    """Distribution 추상 클래스 테스트"""
+
+    def test_cannot_instantiate_abstract_class(self):
+        """추상 클래스를 직접 인스턴스화할 수 없는지 테스트"""
+        with pytest.raises(TypeError):
+            Distribution()
+
+    def test_subclass_must_implement_generate(self):
+        """서브클래스가 generate 메서드를 구현해야 하는지 테스트"""
+
+        class IncompleteDistribution(Distribution):
+            pass
+
+        with pytest.raises(TypeError):
+            IncompleteDistribution()
+
+    def test_valid_subclass_implementation(self):
+        """올바른 서브클래스 구현 테스트"""
+
+        class ValidDistribution(Distribution):
+            def generate(self) -> float:
+                return 42.0
+
+        # 인스턴스 생성이 성공해야 함
+        dist = ValidDistribution()
+        assert dist.generate() == 42.0
+        assert isinstance(dist, Distribution)
     with pytest.raises(TypeError):
         IncompleteDistribution()
 
